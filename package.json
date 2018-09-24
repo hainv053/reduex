@@ -2,6 +2,7 @@
   "name": "reduex",
   "version": "1.0.0",
   "description": "Reduex",
+  "repository": "git@github.com:hainv053/reduex.git",
   "files": [
     "build"
   ],
