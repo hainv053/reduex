@@ -12,7 +12,6 @@ const createProvider = (Provider) =>
         stores: any
         logger?: boolean
     }> {
-
         constructor(props) {
             super(props);
             bindProvider = this;
