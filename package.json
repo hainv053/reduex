@@ -2,6 +2,15 @@
   "name": "reduex",
   "version": "1.0.1",
   "description": "Reduex",
+  "homepage": "https://github.com/hainv053/reduex#readme",
+  "keywords": [
+    "reduex",
+    "redux",
+    "state management",
+    "javascript",
+    "react context",
+    "react"
+  ],
   "repository": "git@github.com:hainv053/reduex.git",
   "files": [
     "build"
