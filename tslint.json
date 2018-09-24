@@ -1,0 +1,26 @@
+{
+  "rules": {
+    "class-name": true,
+    "one-line": [
+      true,
+      "check-open-brace",
+      "check-catch",
+      "check-else",
+      "check-whitespace"
+    ],
+    "semicolon": [
+      true,
+      "always",
+      "ignore-bound-class-methods",
+      "ignore-interfaces"
+    ],
+    "triple-equals": [
+      true,
+      "allow-null-check"
+    ],
+    "typedef": [
+      true
+    ],
+    "use-strict": false
+  }
+}
