@@ -50,7 +50,7 @@ const stores = {
 ReactDOM.render(
     <Provider
         logger={true}
-        stores={models}>
+        stores={stores}>
         <App />
     </Provider>
     ,
