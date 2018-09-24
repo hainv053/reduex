@@ -107,8 +107,31 @@ var createProvider = function (Provider) {
         return Root;
     }(React.PureComponent));
 };
+var createPureConsumer = function (Component, componentProps) {
+    return /** @class */ (function (_super) {
+        __extends(PureConsumer, _super);
+        function PureConsumer() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        PureConsumer.prototype.shouldComponentUpdate = function (newProps) {
+            var mapPreProps = this.props.mapStateToProps;
+            var mapNewProps = newProps.mapStateToProps;
+            return !_.isEqual(mapPreProps, mapNewProps);
+        };
+        PureConsumer.prototype.render = function () {
+            var mapStateToProps = this.props.mapStateToProps;
+            return React.createElement(Component, __assign({}, componentProps, mapStateToProps, { dispatch: dispatch }));
+        };
+        return PureConsumer;
+    }(React.Component));
+};
 var createConsumer = function (Consumer) { return function (mapStateToProps) { return function (Component) {
-    return function (props) { return (React.createElement(Consumer, null, function (state) { return (React.createElement(Component, __assign({}, props, { dispatch: dispatch }, mapStateToProps(state || {})))); })); };
+    return function (props) {
+        var PureComponent = createPureConsumer(Component, props);
+        return (React.createElement(Consumer, null, function (state) {
+            return (React.createElement(PureComponent, { mapStateToProps: mapStateToProps(state || {}) }));
+        }));
+    };
 }; }; };
 var dispatch = function (actionType, payload) { return __awaiter(_this, void 0, void 0, function () {
     var _a, modelName, preRootState, responseAction, nextState;
@@ -119,7 +142,7 @@ var dispatch = function (actionType, payload) { return __awaiter(_this, void 0, 
                     throw Error('Action must have payload');
                 }
                 if (logger)
-                    console.log('---> ACTION: %c' + actionType, "color: #000000; font-weight: bold");
+                    console.log('--> ACTION: %c' + actionType, "color: #000000; font-weight: bold");
                 actionType = actionType.replace(/\//g, '.');
                 if (!_.has(actions, actionType)) {
                     throw new Error('Action not found');

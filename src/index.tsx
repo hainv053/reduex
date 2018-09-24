@@ -56,12 +56,38 @@ const createProvider = (Provider) =>
         }
     };
 
+const createPureConsumer = (Component, componentProps) =>
+    class PureConsumer extends React.Component<any> {
+
+        shouldComponentUpdate(newProps) {
+            let mapPreProps = this.props.mapStateToProps;
+            let mapNewProps = newProps.mapStateToProps;
+
+            return !_.isEqual(mapPreProps, mapNewProps);
+        }
+
+        render() {
+            const { mapStateToProps } = this.props;
+            return <Component {...componentProps} {...mapStateToProps} dispatch={dispatch} />;
+        }
+    };
+
 const createConsumer = Consumer => mapStateToProps => Component =>
-    props => (
-        <Consumer>
-            {state => (<Component {...props} dispatch={dispatch} {...mapStateToProps(state || {})} />)}
-        </Consumer>
-    );
+    props => {
+        const PureComponent = createPureConsumer(Component, props);
+        return (
+            <Consumer>
+            {
+                state => {
+                    return (
+                        <PureComponent mapStateToProps={mapStateToProps(state || {})} />
+                    );
+                }
+            }
+            </Consumer>
+        );
+    };
+
 
 const dispatch = async (actionType: string, payload) => {
 
