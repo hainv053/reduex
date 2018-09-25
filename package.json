@@ -1,7 +1,7 @@
 {
   "name": "reduex",
-  "version": "1.0.4",
-  "description": "Reduex",
+  "version": "1.0.5",
+  "description": "Reduex - State management with react context",
   "homepage": "https://github.com/hainv053/reduex#readme",
   "keywords": [
     "reduex",

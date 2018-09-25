@@ -7,57 +7,58 @@ const actions = {};
 let logger = false;
 let bindProvider;
 
-const createProvider = (Provider) =>
-    class Root extends React.PureComponent<{
-        stores: any
-        logger?: boolean
-    }> {
-        constructor(props) {
-            super(props);
-            bindProvider = this;
+class Provider extends React.PureComponent<{
+    stores: any
+    logger?: boolean
+}> {
+    constructor(props) {
+        super(props);
+        bindProvider = this;
 
-            logger = this.props.logger;
+        logger = this.props.logger;
 
-            const stores         = this.props.stores;
-            const initState: any = {};
+        const stores         = this.props.stores;
+        const initState: any = {};
 
-            if (typeof stores !== 'object') {
-                throw new Error('Store not object');
+        if (typeof stores !== 'object') {
+            throw new Error('Store not object');
+        } else {
+            if (Object.keys(stores).length === 0) {
+                throw new Error('Store must have model');
+            }
+        }
+
+        for (let storeKey in stores) {
+            if (typeof stores[storeKey].state === 'undefined') {
+                throw new Error('Model require state');
             } else {
-                if (Object.keys(stores).length === 0) {
-                    throw new Error('Store must have model');
-                }
+                initState[storeKey] = stores[storeKey].state;
             }
 
-            for (let storeKey in stores) {
-                if (typeof stores[storeKey].state === 'undefined') {
-                    throw new Error('Model requrie state');
-                } else {
-                    initState[storeKey] = stores[storeKey].state;
-                }
-
-                if (typeof stores[storeKey].actions !== 'undefined') {
-                    for (let action of stores[storeKey].actions) {
-                        if (typeof action !== 'function') {
-                            throw Error('Action must be function');
-                        }
+            if (typeof stores[storeKey].actions !== 'undefined') {
+                for (let action of stores[storeKey].actions) {
+                    if (typeof action !== 'function') {
+                        throw Error('Action must be function');
                     }
-                    actions[storeKey] = stores[storeKey].actions;
                 }
+                actions[storeKey] = stores[storeKey].actions;
             }
-
-            this.state = initState;
         }
 
-        render() {
-            return (
-                <Provider value={this.state}>{this.props.children}</Provider>
-            );
-        }
-    };
+        this.state = initState;
+    }
+
+    render() {
+        return (
+            <context.Provider value={this.state}>{this.props.children}</context.Provider>
+        );
+    }
+}
 
 const createPureConsumer = (Component, componentProps) =>
-    class PureConsumer extends React.Component<any> {
+    class PureConsumer extends React.Component<{
+        mapStateToProps: any
+    }> {
 
         shouldComponentUpdate(newProps) {
             let mapPreProps = this.props.mapStateToProps;
@@ -72,19 +73,15 @@ const createPureConsumer = (Component, componentProps) =>
         }
     };
 
-const createConsumer = Consumer => mapStateToProps => Component =>
+const connect = (mapStateToProps = (state) => state) => Component =>
     props => {
-        const PureComponent = createPureConsumer(Component, props);
+        const PureConsumer = createPureConsumer(Component, props);
         return (
-            <Consumer>
+            <context.Consumer>
             {
-                state => {
-                    return (
-                        <PureComponent mapStateToProps={mapStateToProps(state || {})} />
-                    );
-                }
+                state => (<PureConsumer mapStateToProps={mapStateToProps(state || {})} />)
             }
-            </Consumer>
+            </context.Consumer>
         );
     };
 
@@ -116,17 +113,17 @@ const dispatch = async (actionType: string, payload) => {
     }
 
     if (typeof responseAction === 'undefined' || typeof responseAction !== 'object') {
-        throw new Error('ACtion must be return object');
+        throw new Error('Action must be return object');
     }
 
-    let nextState = Object.assign({}, preRootState, {
+    let nextRootState = Object.assign({}, preRootState, {
         [modelName]: {
             ...preRootState[modelName],
             ...responseAction
         }
     });
 
-    bindProvider.setState(nextState);
+    bindProvider.setState(nextRootState);
 
     if (logger) console.log(
         '  %cprev state ',
@@ -141,22 +138,27 @@ const dispatch = async (actionType: string, payload) => {
     if (logger) console.log(
         '  %cnext state ',
         `color: #008000; font-weight: bold`,
-        nextState
+        nextRootState
     );
 
     return;
 };
 
-export const getRootState = () => {
-    return bindProvider.state;
-};
+const getRootState = () => bindProvider.state;
 
-export const createModel = (model: {
+const createModel = (model: {
     state: object
     actions?: object
 }) => {
-    return model;
+    return {
+        state: model.state,
+        actions: model.actions || {}
+    };
 };
 
-export const Provider = createProvider(context.Provider);
-export const connect  = createConsumer(context.Consumer);
+export {
+    Provider,
+    createModel,
+    getRootState,
+    connect
+};

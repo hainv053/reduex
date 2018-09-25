@@ -12,7 +12,8 @@
     ],
     "jsx": "react",
     "sourceMap": false,
-    "declaration": true
+    "declaration": true,
+    "noUnusedLocals": false
   },
   "include": [
     "src"

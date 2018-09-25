@@ -64,49 +64,47 @@ var context = React.createContext({});
 var actions = {};
 var logger = false;
 var bindProvider;
-var createProvider = function (Provider) {
-    return /** @class */ (function (_super) {
-        __extends(Root, _super);
-        function Root(props) {
-            var _this = _super.call(this, props) || this;
-            bindProvider = _this;
-            logger = _this.props.logger;
-            var stores = _this.props.stores;
-            var initState = {};
-            if (typeof stores !== 'object') {
-                throw new Error('Store not object');
+var Provider = /** @class */ (function (_super) {
+    __extends(Provider, _super);
+    function Provider(props) {
+        var _this = _super.call(this, props) || this;
+        bindProvider = _this;
+        logger = _this.props.logger;
+        var stores = _this.props.stores;
+        var initState = {};
+        if (typeof stores !== 'object') {
+            throw new Error('Store not object');
+        }
+        else {
+            if (Object.keys(stores).length === 0) {
+                throw new Error('Store must have model');
+            }
+        }
+        for (var storeKey in stores) {
+            if (typeof stores[storeKey].state === 'undefined') {
+                throw new Error('Model require state');
             }
             else {
-                if (Object.keys(stores).length === 0) {
-                    throw new Error('Store must have model');
-                }
+                initState[storeKey] = stores[storeKey].state;
             }
-            for (var storeKey in stores) {
-                if (typeof stores[storeKey].state === 'undefined') {
-                    throw new Error('Model requrie state');
-                }
-                else {
-                    initState[storeKey] = stores[storeKey].state;
-                }
-                if (typeof stores[storeKey].actions !== 'undefined') {
-                    for (var _i = 0, _a = stores[storeKey].actions; _i < _a.length; _i++) {
-                        var action = _a[_i];
-                        if (typeof action !== 'function') {
-                            throw Error('Action must be function');
-                        }
+            if (typeof stores[storeKey].actions !== 'undefined') {
+                for (var _i = 0, _a = stores[storeKey].actions; _i < _a.length; _i++) {
+                    var action = _a[_i];
+                    if (typeof action !== 'function') {
+                        throw Error('Action must be function');
                     }
-                    actions[storeKey] = stores[storeKey].actions;
                 }
+                actions[storeKey] = stores[storeKey].actions;
             }
-            _this.state = initState;
-            return _this;
         }
-        Root.prototype.render = function () {
-            return (React.createElement(Provider, { value: this.state }, this.props.children));
-        };
-        return Root;
-    }(React.PureComponent));
-};
+        _this.state = initState;
+        return _this;
+    }
+    Provider.prototype.render = function () {
+        return (React.createElement(context.Provider, { value: this.state }, this.props.children));
+    };
+    return Provider;
+}(React.PureComponent));
 var createPureConsumer = function (Component, componentProps) {
     return /** @class */ (function (_super) {
         __extends(PureConsumer, _super);
@@ -125,16 +123,17 @@ var createPureConsumer = function (Component, componentProps) {
         return PureConsumer;
     }(React.Component));
 };
-var createConsumer = function (Consumer) { return function (mapStateToProps) { return function (Component) {
-    return function (props) {
-        var PureComponent = createPureConsumer(Component, props);
-        return (React.createElement(Consumer, null, function (state) {
-            return (React.createElement(PureComponent, { mapStateToProps: mapStateToProps(state || {}) }));
-        }));
+var connect = function (mapStateToProps) {
+    if (mapStateToProps === void 0) { mapStateToProps = function (state) { return state; }; }
+    return function (Component) {
+        return function (props) {
+            var PureConsumer = createPureConsumer(Component, props);
+            return (React.createElement(context.Consumer, null, function (state) { return (React.createElement(PureConsumer, { mapStateToProps: mapStateToProps(state || {}) })); }));
+        };
     };
-}; }; };
+};
 var dispatch = function (actionType, payload) { return __awaiter(_this, void 0, void 0, function () {
-    var _a, modelName, preRootState, responseAction, nextState;
+    var _a, modelName, preRootState, responseAction, nextRootState;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -157,27 +156,27 @@ var dispatch = function (actionType, payload) { return __awaiter(_this, void 0, 
                 _b.label = 2;
             case 2:
                 if (typeof responseAction === 'undefined' || typeof responseAction !== 'object') {
-                    throw new Error('ACtion must be return object');
+                    throw new Error('Action must be return object');
                 }
-                nextState = Object.assign({}, preRootState, (_a = {},
+                nextRootState = Object.assign({}, preRootState, (_a = {},
                     _a[modelName] = __assign({}, preRootState[modelName], responseAction),
                     _a));
-                bindProvider.setState(nextState);
+                bindProvider.setState(nextRootState);
                 if (logger)
                     console.log('  %cprev state ', "color: #708090; font-weight: bold", preRootState);
                 if (logger)
                     console.log('  %cparams     ', "color: #0000FF; font-weight: bold", payload);
                 if (logger)
-                    console.log('  %cnext state ', "color: #008000; font-weight: bold", nextState);
+                    console.log('  %cnext state ', "color: #008000; font-weight: bold", nextRootState);
                 return [2 /*return*/];
         }
     });
 }); };
-export var getRootState = function () {
-    return bindProvider.state;
+var getRootState = function () { return bindProvider.state; };
+var createModel = function (model) {
+    return {
+        state: model.state,
+        actions: model.actions || {}
+    };
 };
-export var createModel = function (model) {
-    return model;
-};
-export var Provider = createProvider(context.Provider);
-export var connect = createConsumer(context.Consumer);
+export { Provider, createModel, getRootState, connect };
