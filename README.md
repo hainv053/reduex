@@ -1,5 +1,7 @@
 # reduex
 
+State management with react context
+
 ## Installation
 
 ```bash
@@ -9,6 +11,12 @@ or
 ```bash
 yarn add reduex
 ```
+
+## API
+- `<Provider stores logger>`: Root provider
+- `createModel({state: {}, actions: {}})`: Create store model
+- `connect`: Connect Compoment to reduex
+- `getRootState`: Get root state
 
 ## Usage
 
